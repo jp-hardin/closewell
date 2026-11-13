@@ -1,0 +1,872 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Closewell</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Closewell runs the sell-side process in one place: valuation, buyer matching and a deal room from first teaser to signed LOI.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a working product page. Copy on the left, a live "deal record" on the right; below it, the three tools run on the same inputs. */
+:root{
+  --paper:#F3F6F5; --surface:#FFFFFF; --sunk:#E8EEEC; --ink:#0F1F1C; --muted:#566A66; --line:#D5DFDC;
+  --accent:#0D6B5B; --accent-soft:#DCEFEA; --accent-ink:#FFFFFF; --signal:#2F4FD0; --signal-soft:#E3E8FB;
+  --good:#1B7F4B; --warn:#A86200; --bad:#B42318;
+  --f-display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r:10px; --gut:max(16px, env(safe-area-inset-left, 0px));
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0B1413; --surface:#111D1B; --sunk:#0E1917; --ink:#E3ECE9; --muted:#93A6A2; --line:#22322E;
+  --accent:#43B79D; --accent-soft:#163430; --accent-ink:#04201A; --signal:#8EA4FF; --signal-soft:#1B2547;
+  --good:#4CC38A; --warn:#E5A44A; --bad:#F27166; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --paper:#0B1413; --surface:#111D1B; --sunk:#0E1917; --ink:#E3ECE9; --muted:#93A6A2; --line:#22322E;
+  --accent:#43B79D; --accent-soft:#163430; --accent-ink:#04201A; --signal:#8EA4FF; --signal-soft:#1B2547;
+  --good:#4CC38A; --warn:#E5A44A; --bad:#F27166; color-scheme:dark }
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{background:var(--paper);color:var(--ink);font:400 15px/1.55 var(--f-body);-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
+h1,h2,h3{font-family:var(--f-display);font-weight:600;letter-spacing:-0.02em;text-wrap:balance;margin:0}
+p{margin:0}
+a{color:inherit}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.wrap{max-width:1180px;margin:0 auto;padding-left:var(--gut);padding-right:max(16px, env(safe-area-inset-right, 0px))}
+.eyebrow{font:500 12px/1 var(--f-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--accent)}
+.lede{color:var(--muted);font-size:17px;max-width:62ch}
+:focus-visible{outline:2px solid var(--signal);outline-offset:2px;border-radius:4px}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;border:1px solid transparent;border-radius:999px;padding:11px 18px;font:600 14px/1 var(--f-body);text-decoration:none;cursor:pointer;background:none;color:var(--ink)}
+.btn-primary{background:var(--accent);color:var(--accent-ink)}
+.btn-primary:hover{filter:brightness(1.08)}
+.btn-ghost{border-color:var(--line);background:var(--surface)}
+.btn-ghost:hover{border-color:var(--muted)}
+.btn-sm{padding:7px 12px;font-size:13px}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb, var(--paper) 88%, transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:24px;padding-block:12px}
+.logo{display:flex;align-items:center;gap:9px;font:700 19px/1 var(--f-display);text-decoration:none;letter-spacing:-0.02em}
+.logo svg{flex:none}
+.nav{display:flex;gap:20px;margin-left:auto;font-size:14px}
+.nav a{text-decoration:none;color:var(--muted)}
+.nav a:hover{color:var(--ink)}
+@media (max-width:820px){.nav{display:none}.top .btn{margin-left:auto}}
+
+/* hero */
+.hero{padding-block:56px 40px}
+.hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
+.hero h1{font-size:clamp(38px,5.4vw,64px);line-height:1.02;font-weight:700}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero-copy{display:flex;flex-direction:column;gap:22px;min-width:0}
+.hero-cta{display:flex;gap:10px;flex-wrap:wrap}
+.hero-note{font-size:13px;color:var(--muted)}
+@media (max-width:900px){.hero .wrap{grid-template-columns:1fr}}
+
+/* deal record card */
+.record{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 1px 0 var(--line),0 24px 48px -28px rgba(10,40,34,.35);overflow:hidden;min-width:0}
+.record-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);background:var(--sunk)}
+.record-head b{font:600 15px/1.2 var(--f-display)}
+.tag{font:500 11px/1 var(--f-mono);letter-spacing:.04em;text-transform:uppercase;padding:5px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+.tag.sig{background:var(--signal-soft);color:var(--signal)}
+.record-body{padding:18px;display:grid;gap:18px}
+.record-value{display:flex;flex-direction:column;gap:4px}
+.record-value .big{font:600 clamp(26px,3.4vw,36px)/1.1 var(--f-display);letter-spacing:-0.02em}
+.record-value small{color:var(--muted);font-size:13px}
+.phases{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.phases span{height:6px;border-radius:3px;background:var(--line)}
+.phases span.on{background:var(--accent)}
+.phase-labels{display:flex;justify-content:space-between;font:500 11px/1 var(--f-mono);color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:8px}
+.mini-buyers{display:grid;gap:8px}
+.mini-buyer{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:8px}
+.avatar{width:30px;height:30px;border-radius:7px;display:grid;place-items:center;font:600 12px/1 var(--f-mono);background:var(--accent-soft);color:var(--accent)}
+.mini-buyer .name{font-weight:600;font-size:14px;line-height:1.25}
+.mini-buyer .sub{font-size:12px;color:var(--muted)}
+.fit{font:500 13px/1 var(--f-mono)}
+.next{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:8px;background:var(--signal-soft);color:var(--ink);font-size:13px}
+.next b{color:var(--signal)}
+
+/* facts strip */
+.facts{border-block:1px solid var(--line);background:var(--surface)}
+.facts .wrap{display:grid;grid-template-columns:repeat(4,1fr)}
+.fact{padding-block:22px;padding-inline:20px;border-left:1px solid var(--line);display:flex;flex-direction:column;gap:4px}
+.fact:first-child{border-left:0;padding-left:0}
+.fact b{font:600 26px/1.1 var(--f-display)}
+.fact span{font-size:13px;color:var(--muted)}
+@media (max-width:760px){.facts .wrap{grid-template-columns:1fr 1fr}.fact{padding-left:0;border-left:0;border-top:1px solid var(--line)}.fact:nth-child(-n+2){border-top:0}}
+
+/* sections */
+section.band{padding-block:72px}
+.sec-head{display:flex;flex-direction:column;gap:12px;margin-bottom:32px}
+.sec-head h2{font-size:clamp(28px,3.4vw,40px);line-height:1.08}
+
+/* workspace */
+.workspace{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.tabs{display:flex;gap:4px;padding:8px;border-bottom:1px solid var(--line);background:var(--sunk);overflow-x:auto}
+.tab{flex:none;border:0;background:none;color:var(--muted);font:600 14px/1 var(--f-body);padding:11px 14px;border-radius:8px;cursor:pointer;display:flex;gap:8px;align-items:center}
+.tab .k{font:500 11px/1 var(--f-mono);color:var(--muted)}
+.tab[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.tab[aria-selected="true"] .k{color:var(--accent)}
+.panel{padding:24px}
+@media (max-width:600px){.panel{padding:16px}}
+
+/* valuation */
+.val-grid{display:grid;grid-template-columns:340px 1fr;gap:28px}
+@media (max-width:920px){.val-grid{grid-template-columns:1fr}}
+.form{display:grid;gap:14px;align-content:start}
+.form h3{font-size:16px}
+.field{display:grid;gap:6px}
+.field label{font-size:13px;font-weight:500}
+.field .hint{font-size:12px;color:var(--muted)}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input[type=text],input[type=number],select{width:100%;font:400 14px/1.2 var(--f-body);color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:10px 11px}
+input[type=number]{font-family:var(--f-mono)}
+.money{position:relative}
+.money::before{content:"$";position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font:400 14px var(--f-mono)}
+.money input{padding-left:22px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--paper);color:var(--muted);font:500 13px/1 var(--f-body);padding:10px 6px;cursor:pointer;border-left:1px solid var(--line)}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.range-row{display:flex;justify-content:space-between;font-size:13px}
+.range-row .num{color:var(--accent);font-weight:500}
+.divider{height:1px;background:var(--line);margin-block:4px}
+
+.results{display:grid;gap:22px;min-width:0;align-content:start}
+.headline-val{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.headline-val div{padding:16px 18px;border-left:1px solid var(--line);display:grid;gap:4px}
+.headline-val div:first-child{border-left:0}
+.headline-val span{font-size:12px;color:var(--muted)}
+.headline-val b{font:600 clamp(20px,2.4vw,28px)/1.1 var(--f-display);letter-spacing:-0.01em}
+.headline-val .mid b{color:var(--accent)}
+@media (max-width:560px){.headline-val{grid-template-columns:1fr}.headline-val div{border-left:0;border-top:1px solid var(--line)}.headline-val div:first-child{border-top:0}}
+.card{border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:14px;min-width:0}
+.card h3{font-size:16px}
+.card-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.card-head small{color:var(--muted);font-size:12px}
+.chart-wrap{overflow-x:auto}
+svg text{font-family:var(--f-mono)}
+.bridge{display:grid;gap:8px}
+.bridge-row{display:grid;grid-template-columns:minmax(120px,1.1fr) 2fr 64px;gap:12px;align-items:center;font-size:13px}
+.bridge-row .lbl{color:var(--ink)}
+.bridge-row .lbl small{display:block;color:var(--muted);font-size:12px}
+.track{position:relative;height:14px;background:var(--sunk);border-radius:3px}
+.track::after{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:var(--muted);opacity:.5}
+.bar{position:absolute;top:2px;bottom:2px;border-radius:2px}
+.bar.pos{background:var(--good)} .bar.neg{background:var(--bad)}
+.delta{text-align:right;font-family:var(--f-mono);font-size:13px}
+.delta.pos{color:var(--good)} .delta.neg{color:var(--bad)} .delta.zero{color:var(--muted)}
+.qs{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.qs li{display:grid;grid-template-columns:auto 1fr;gap:10px;font-size:14px}
+.qs li::before{content:"?";width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font:600 12px/1 var(--f-mono);background:var(--signal-soft);color:var(--signal)}
+.qs .ok::before{content:"✓";background:var(--accent-soft);color:var(--accent)}
+.fineprint{font-size:12px;color:var(--muted)}
+
+/* buyers */
+.buyer-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:16px}
+.buyer-tools .field{flex:1 1 180px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--paper);color:var(--muted);border-radius:999px;padding:7px 11px;font:500 12px/1 var(--f-body);cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.buyer-summary{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 0 12px;font-size:13px;color:var(--muted)}
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:14px}
+th{font:500 11px/1 var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left;padding:12px 14px;background:var(--sunk);border-bottom:1px solid var(--line)}
+td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td .name{font-weight:600}
+td .sub{font-size:12px;color:var(--muted)}
+.type-pill{font:500 11px/1 var(--f-mono);padding:5px 8px;border-radius:5px;background:var(--sunk);border:1px solid var(--line);white-space:nowrap}
+.fitbar{display:flex;align-items:center;gap:8px}
+.fitbar i{display:block;width:64px;height:6px;border-radius:3px;background:var(--sunk);position:relative;overflow:hidden}
+.fitbar i b{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:3px}
+.fitbar.mid i b{background:var(--warn)} .fitbar.low i b{background:var(--muted)}
+.why{font-size:12px;color:var(--muted)}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+
+/* deal room */
+.room-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.room-stats{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.room-stats b{color:var(--ink);font:600 15px var(--f-mono)}
+.board-wrap{overflow-x:auto;padding-bottom:6px}
+.board{display:grid;grid-template-columns:repeat(6,minmax(160px,1fr));gap:8px;min-width:1010px}
+.col{background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:10px;display:grid;gap:8px;align-content:start;min-height:220px}
+.col-head{display:flex;justify-content:space-between;align-items:center;padding:2px 4px 6px}
+.col-head b{font:600 13px/1.2 var(--f-display)}
+.col-head small{display:block;font-size:11px;color:var(--muted);font-weight:400;font-family:var(--f-body)}
+.count{font:500 12px/1 var(--f-mono);color:var(--muted)}
+.deal{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px;display:grid;gap:8px}
+.deal .name{font-weight:600;font-size:13px;line-height:1.3}
+.deal .sub{font-size:12px;color:var(--muted)}
+.deal .act{font-size:12px;color:var(--signal)}
+.deal-btns{display:flex;gap:6px}
+.deal-btns button{flex:1;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:6px;padding:6px;font:500 12px/1 var(--f-body);cursor:pointer}
+.deal-btns button:disabled{opacity:.35;cursor:default}
+.deal-btns button.fwd{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.deal-btns button.rm{flex:0 0 30px}
+.bid{display:grid;grid-template-columns:auto 1fr;gap:6px;align-items:center;font-size:12px;color:var(--muted)}
+.bid input{padding:6px 8px 6px 20px;font-size:12px}
+.bid .money::before{left:8px;font-size:12px}
+.col-empty{font-size:12px;color:var(--muted);padding:8px 4px}
+
+/* audiences */
+.aud{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.aud article{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:22px;display:flex;flex-direction:column;gap:10px}
+.aud h3{font-size:20px}
+.aud p{color:var(--muted);font-size:14px}
+.aud ul{margin:4px 0 0;padding-left:18px;font-size:14px;display:grid;gap:4px}
+@media (max-width:860px){.aud{grid-template-columns:1fr}}
+
+/* process */
+.steps{display:grid;grid-template-columns:repeat(6,1fr);border-top:2px solid var(--ink)}
+.step{padding:18px 16px 0 0;display:grid;gap:8px;align-content:start}
+.step .n{font:500 12px/1 var(--f-mono);color:var(--accent)}
+.step h3{font-size:18px}
+.step p{font-size:13px;color:var(--muted)}
+.docs{display:flex;flex-wrap:wrap;gap:4px}
+.docs span{font:500 11px/1 var(--f-mono);padding:4px 6px;border:1px solid var(--line);border-radius:4px;color:var(--ink)}
+@media (max-width:980px){.steps{grid-template-columns:repeat(3,1fr);row-gap:24px}}
+@media (max-width:560px){.steps{grid-template-columns:1fr 1fr}}
+
+/* compare */
+.compare{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.compare > div{padding:26px;display:grid;gap:12px;align-content:start}
+.compare .before{background:var(--sunk)}
+.compare .after{background:var(--accent);color:var(--accent-ink)}
+.compare h3{font-size:22px}
+.compare ul{list-style:none;margin:0;padding:0;display:grid;gap:10px;font-size:14px}
+.compare li{display:grid;grid-template-columns:110px 1fr;gap:12px;padding-top:10px;border-top:1px solid color-mix(in srgb, currentColor 18%, transparent)}
+.compare li span:first-child{font:500 12px/1.5 var(--f-mono);opacity:.75}
+@media (max-width:760px){.compare{grid-template-columns:1fr}}
+
+/* pricing */
+.pricing{display:grid;grid-template-columns:1fr 1fr 1.1fr;gap:16px;align-items:stretch}
+.plan{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:14px}
+.plan .price{font:600 36px/1 var(--f-display)}
+.plan .price small{font:400 14px var(--f-body);color:var(--muted)}
+.plan ul{margin:0;padding-left:18px;font-size:14px;display:grid;gap:6px;flex:1}
+.fee{background:var(--ink);color:var(--paper);border-radius:14px;padding:24px;display:grid;gap:14px;align-content:start}
+.fee h3{font-size:18px}
+.fee .row{display:flex;justify-content:space-between;gap:12px;padding-top:10px;border-top:1px solid color-mix(in srgb, var(--paper) 18%, transparent);font-size:14px}
+.fee .row b{font-family:var(--f-mono);font-weight:500}
+.fee .save{font:600 28px/1.1 var(--f-display)}
+.fee p{font-size:12px;opacity:.75}
+@media (max-width:900px){.pricing{grid-template-columns:1fr}}
+
+/* faq */
+.faq{display:grid;gap:0;border-top:1px solid var(--line);max-width:820px}
+.faq details{border-bottom:1px solid var(--line);padding-block:16px}
+.faq summary{cursor:pointer;font:600 17px/1.3 var(--f-display);list-style:none;display:flex;justify-content:space-between;gap:16px}
+.faq summary::after{content:"+";font-family:var(--f-mono);color:var(--accent)}
+.faq details[open] summary::after{content:"–"}
+.faq p{margin-top:10px;color:var(--muted);max-width:68ch}
+
+footer{border-top:1px solid var(--line);padding-block:32px;font-size:13px;color:var(--muted)}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:.2s;z-index:40}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="Closewell home">
+      <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect width="26" height="26" rx="7" fill="var(--accent)"/><path d="M17.5 8.6a6 6 0 1 0 0 8.8" fill="none" stroke="var(--accent-ink)" stroke-width="2.4" stroke-linecap="round"/><circle cx="18.6" cy="13" r="1.7" fill="var(--accent-ink)"/></svg>
+      Closewell
+    </a>
+    <nav class="nav" aria-label="Sections">
+      <a href="#workspace">Platform</a>
+      <a href="#process">Process</a>
+      <a href="#who">Who it's for</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <a class="btn btn-primary btn-sm" href="#workspace">Value my business</a>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-copy">
+        <span class="eyebrow">Sell-side M&amp;A, run as software</span>
+        <h1>Price it. Match the buyers. <em>Run the sale.</em></h1>
+        <p class="lede">Closewell keeps your valuation, sale materials, buyer list and every offer in one deal record. It takes you from the first number to a signed LOI, and you pay a flat monthly fee with no success fee.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="#workspace">Value my business →</a>
+          <a class="btn btn-ghost" href="#who">For M&amp;A advisors</a>
+        </div>
+        <p class="hero-note">The record on the right is live. It updates as you change the example inputs below.</p>
+      </div>
+
+      <aside class="record" aria-label="Deal record preview">
+        <div class="record-head">
+          <b id="rec-name">Ridgeway Supply Co.</b>
+          <span class="tag">Example deal</span>
+        </div>
+        <div class="record-body">
+          <div class="record-value">
+            <small>Planning value range · enterprise value</small>
+            <span class="big num" id="rec-range">$14.2M – $18.6M</span>
+            <small id="rec-basis">5.1x – 6.7x adjusted EBITDA of $3.57M</small>
+          </div>
+          <div>
+            <div class="phases" id="rec-phases" aria-hidden="true"></div>
+            <div class="phase-labels"><span>Prepare</span><span>Market</span><span>Close</span></div>
+          </div>
+          <div class="mini-buyers" id="rec-buyers"></div>
+          <div class="next" id="rec-next"><b>Next</b><span>Send teaser to 3 shortlisted buyers</span></div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <div class="facts">
+    <div class="wrap">
+      <div class="fact"><b class="num">6</b><span>phases, from prep to close, in one record</span></div>
+      <div class="fact"><b class="num">7</b><span>industry multiple bands built into the valuation</span></div>
+      <div class="fact"><b class="num" id="fact-buyers">24</b><span>sample buyers scored against your deal</span></div>
+      <div class="fact"><b class="num">$0</b><span>success fee. You keep the proceeds.</span></div>
+    </div>
+  </div>
+
+  <!-- WORKSPACE -->
+  <section class="band" id="workspace">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">The platform</span>
+        <h2>One set of facts drives the valuation, the buyer list and the deal room.</h2>
+        <p class="lede">Change a number in the valuation and the buyer scores update with it. Shortlist a buyer and they appear in the deal room, ready for a teaser. Everything here is working, and changes are saved in this browser.</p>
+      </div>
+
+      <div class="workspace">
+        <div class="tabs" role="tablist" aria-label="Closewell tools">
+          <button class="tab" role="tab" id="tab-value" aria-controls="p-value" aria-selected="true"><span class="k">01</span>Valuation</button>
+          <button class="tab" role="tab" id="tab-buyers" aria-controls="p-buyers" aria-selected="false"><span class="k">02</span>Buyer match</button>
+          <button class="tab" role="tab" id="tab-room" aria-controls="p-room" aria-selected="false"><span class="k">03</span>Deal room <span class="tag sig" id="room-count">3</span></button>
+        </div>
+
+        <!-- Valuation panel -->
+        <div class="panel" role="tabpanel" id="p-value" aria-labelledby="tab-value">
+          <div class="val-grid">
+            <form class="form" id="vform" autocomplete="off">
+              <h3>About the business</h3>
+              <div class="field"><label for="f-name">Company name</label><input type="text" id="f-name"></div>
+              <div class="field"><label for="f-ind">Industry</label><select id="f-ind"></select></div>
+              <div class="field"><label for="f-reg">Headquarters region</label><select id="f-reg"></select></div>
+              <div class="divider"></div>
+              <h3>Trailing twelve months</h3>
+              <div class="pair">
+                <div class="field"><label for="f-rev">Revenue</label><div class="money"><input type="number" id="f-rev" min="0" step="100000"></div></div>
+                <div class="field"><label for="f-ebitda">Reported EBITDA</label><div class="money"><input type="number" id="f-ebitda" step="10000"></div></div>
+              </div>
+              <div class="pair">
+                <div class="field"><label for="f-owner">Owner comp add-back</label><div class="money"><input type="number" id="f-owner" min="0" step="10000"></div></div>
+                <div class="field"><label for="f-onetime">One-time costs</label><div class="money"><input type="number" id="f-onetime" min="0" step="10000"></div></div>
+              </div>
+              <p class="hint fineprint">Add-backs are expenses a buyer won't carry: owner pay above market rate, a one-off lawsuit, a relocation.</p>
+              <div class="divider"></div>
+              <h3>What buyers will ask about</h3>
+              <div class="field"><div class="range-row"><label for="f-growth">Revenue growth, last 3 yrs (annual)</label><span class="num" id="o-growth"></span></div><input type="range" id="f-growth" min="-15" max="40" step="1"></div>
+              <div class="field"><div class="range-row"><label for="f-recur">Recurring or contracted revenue</label><span class="num" id="o-recur"></span></div><input type="range" id="f-recur" min="0" max="100" step="5"></div>
+              <div class="field"><div class="range-row"><label for="f-conc">Largest customer, share of revenue</label><span class="num" id="o-conc"></span></div><input type="range" id="f-conc" min="1" max="60" step="1"></div>
+              <div class="field"><label id="l-dep">How much does the business depend on you?</label>
+                <div class="seg" role="group" aria-labelledby="l-dep" id="f-dep">
+                  <button type="button" data-v="low">Low</button><button type="button" data-v="med">Some</button><button type="button" data-v="high">Heavily</button>
+                </div>
+              </div>
+              <button type="button" class="btn btn-ghost btn-sm" id="reset" style="justify-self:start">Reset to example</button>
+            </form>
+
+            <div class="results" aria-live="polite">
+              <div class="headline-val">
+                <div><span>Conservative</span><b class="num" id="v-low"></b></div>
+                <div class="mid"><span>Planning midpoint</span><b class="num" id="v-mid"></b></div>
+                <div><span>Strong process</span><b class="num" id="v-high"></b></div>
+              </div>
+
+              <div class="card">
+                <div class="card-head"><h3>Where your range sits</h3><small id="v-band-label"></small></div>
+                <div class="chart-wrap"><svg id="v-chart" width="100%" height="118" role="img" aria-label="Value range compared with industry band"></svg></div>
+              </div>
+
+              <div class="card">
+                <div class="card-head"><h3>Multiple bridge</h3><small id="v-mult"></small></div>
+                <div class="bridge" id="v-bridge"></div>
+              </div>
+
+              <div class="card">
+                <div class="card-head"><h3>Questions to prepare for</h3><small>Based on the inputs above</small></div>
+                <ul class="qs" id="v-qs"></ul>
+              </div>
+              <p class="fineprint">Planning estimate from industry EBITDA multiple ranges typical of lower middle market deals. It is not an appraisal, and it is not legal, tax or investment advice.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Buyers panel -->
+        <div class="panel" role="tabpanel" id="p-buyers" aria-labelledby="tab-buyers" hidden>
+          <div class="buyer-tools">
+            <div class="field"><label for="b-q">Search buyers</label><input type="text" id="b-q" placeholder="Name or focus"></div>
+            <div class="field" style="flex:0 1 200px"><div class="range-row"><label for="b-min">Minimum fit</label><span class="num" id="o-min"></span></div><input type="range" id="b-min" min="0" max="90" step="5"></div>
+          </div>
+          <div class="field"><span class="fineprint">Buyer type</span><div class="chips" id="b-types"></div></div>
+          <div class="buyer-summary">
+            <span id="b-summary"></span>
+            <span class="fineprint">Sample buyers for illustration. Names are fictional.</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Buyer</th><th>Type</th><th>EBITDA range</th><th>Deals (5 yr)</th><th>Fit</th><th></th></tr></thead>
+              <tbody id="b-rows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Deal room panel -->
+        <div class="panel" role="tabpanel" id="p-room" aria-labelledby="tab-room" hidden>
+          <div class="room-top">
+            <div class="room-stats">
+              <span>In process <b id="r-active">0</b></span>
+              <span>NDAs signed <b id="r-nda">0</b></span>
+              <span>Bids <b id="r-bids">0</b></span>
+              <span>Best bid <b id="r-best">–</b></span>
+            </div>
+            <button class="btn btn-ghost btn-sm" id="r-add">+ Add buyers from match list</button>
+          </div>
+          <div class="board-wrap"><div class="board" id="board"></div></div>
+          <p class="fineprint" style="margin-top:12px">Bids are entered as enterprise value. You decide who sees the business and who moves forward.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROCESS -->
+  <section class="band" id="process" style="padding-top:24px">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">How a sale runs</span>
+        <h2>Six phases, each with its own documents and a clear next step.</h2>
+      </div>
+      <div class="steps">
+        <div class="step"><span class="n">01</span><h3>Prepare</h3><p>Clean up the books and document the add-backs a buyer will test.</p><div class="docs"><span>TTM P&amp;L</span><span>Add-back schedule</span></div></div>
+        <div class="step"><span class="n">02</span><h3>Value</h3><p>Set a planning range and find what's pulling the multiple down.</p><div class="docs"><span>Valuation</span><span>Multiple bridge</span></div></div>
+        <div class="step"><span class="n">03</span><h3>Package</h3><p>Write the anonymous teaser and the full information memo.</p><div class="docs"><span>Teaser</span><span>CIM</span></div></div>
+        <div class="step"><span class="n">04</span><h3>Market</h3><p>Approach shortlisted buyers and release detail only under NDA.</p><div class="docs"><span>Buyer list</span><span>NDA</span></div></div>
+        <div class="step"><span class="n">05</span><h3>Bid</h3><p>Collect indications, compare terms and pick who gets exclusivity.</p><div class="docs"><span>IOI</span><span>LOI</span></div></div>
+        <div class="step"><span class="n">06</span><h3>Close</h3><p>Run diligence from one data room and get to a signed agreement.</p><div class="docs"><span>Data room</span><span>APA / SPA</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AUDIENCES -->
+  <section class="band" id="who" style="background:var(--surface);border-block:1px solid var(--line)">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Who uses it</span>
+        <h2>Owners run their own sale. Advisors run many.</h2>
+      </div>
+      <div class="aud">
+        <article>
+          <span class="tag" style="align-self:start">Owners</span>
+          <h3>Business owners</h3>
+          <p>Know what the business is worth before anyone else tells you, then run a disciplined process yourself.</p>
+          <ul><li>Free planning valuation</li><li>Guided teaser and CIM</li><li>Buyer list you control</li></ul>
+          <a class="btn btn-primary btn-sm" href="#workspace" style="align-self:start;margin-top:auto">Start with a valuation</a>
+        </article>
+        <article>
+          <span class="tag sig" style="align-self:start">Pro</span>
+          <h3>M&amp;A attorneys</h3>
+          <p>Keep the client's materials, NDAs and the decisions behind each one in a single record you can audit later.</p>
+          <ul><li>NDA tracking by buyer</li><li>Approval trail on every release</li><li>Client-visible next actions</li></ul>
+          <a class="btn btn-ghost btn-sm" href="#pricing" style="align-self:start;margin-top:auto">See Pro pricing</a>
+        </article>
+        <article>
+          <span class="tag sig" style="align-self:start">Pro</span>
+          <h3>Boutique banks</h3>
+          <p>Run several mandates in parallel, with shared buyer research and one deal room for each.</p>
+          <ul><li>Mandate dashboard</li><li>Shared buyer research</li><li>Bid comparison at IOI and LOI</li></ul>
+          <a class="btn btn-ghost btn-sm" href="#pricing" style="align-self:start;margin-top:auto">See Pro pricing</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPARE -->
+  <section class="band">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Why one record</span>
+        <h2>Most sales live in five tools. Context gets lost between them.</h2>
+      </div>
+      <div class="compare">
+        <div class="before">
+          <h3>Without Closewell</h3>
+          <ul>
+            <li><span>Valuation</span><span>A one-off spreadsheet from last year</span></li>
+            <li><span>Materials</span><span>Drafts scattered across email</span></li>
+            <li><span>Buyers</span><span>A list someone exported and nobody updates</span></li>
+            <li><span>NDAs</span><span>A folder of PDFs</span></li>
+            <li><span>Offers</span><span>Buried in reply threads</span></li>
+          </ul>
+        </div>
+        <div class="after">
+          <h3>With Closewell</h3>
+          <ul>
+            <li><span>Valuation</span><span>Live range tied to current financials</span></li>
+            <li><span>Materials</span><span>Teaser and CIM built from the same facts</span></li>
+            <li><span>Buyers</span><span>Scored on fit with this specific deal</span></li>
+            <li><span>NDAs</span><span>Status tracked by buyer, before any release</span></li>
+            <li><span>Offers</span><span>Bids compared side by side in the deal room</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="band" id="pricing" style="padding-top:24px">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Pricing</span>
+        <h2>A flat monthly fee. No success fee, ever.</h2>
+      </div>
+      <div class="pricing">
+        <div class="plan">
+          <span class="tag" style="align-self:start">Owners</span>
+          <div class="price num">$249<small> / month</small></div>
+          <ul><li>Valuation and multiple bridge</li><li>Buyer match and shortlist</li><li>Deal room through LOI</li><li>Cancel anytime</li></ul>
+          <a class="btn btn-primary" href="#workspace">Start free valuation</a>
+        </div>
+        <div class="plan">
+          <span class="tag sig" style="align-self:start">Pro · advisors</span>
+          <div class="price num">$890<small> / seat / month</small></div>
+          <ul><li>Unlimited mandates</li><li>Client approvals and audit trail</li><li>Shared buyer research</li><li>Firm branding on materials</li></ul>
+          <a class="btn btn-ghost" href="#faq">Questions about Pro</a>
+        </div>
+        <div class="fee" aria-live="polite">
+          <h3>What a success fee would cost on your deal</h3>
+          <div class="row"><span>Planning midpoint</span><b id="p-mid"></b></div>
+          <div class="row"><span>Success fee at <span id="p-rate">5</span>%</span><b id="p-fee"></b></div>
+          <div class="row"><span>Closewell, 12 months</span><b>$2,988</b></div>
+          <div class="save num" id="p-save"></div>
+          <p>Uses the midpoint from your valuation above. The 5% fee is for illustration only. Real broker and banker fees vary with deal size and terms.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="band" id="faq" style="padding-top:24px">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Questions</span>
+        <h2>What Closewell does, and what it doesn't.</h2>
+      </div>
+      <div class="faq">
+        <details open><summary>What is Closewell?</summary><p>Software for the sell side of a company sale. It holds the valuation, materials, buyer list and deal room in one record. Owners use it to run their own sale. Attorneys and boutique banks use Pro to run sales for clients.</p></details>
+        <details><summary>How is the valuation calculated?</summary><p>It starts from an EBITDA multiple band for your industry. It adjusts the multiple for size, growth, recurring revenue, customer concentration and how much the business depends on you, then applies it to adjusted EBITDA (reported EBITDA plus add-backs). The multiple bridge shows each adjustment.</p></details>
+        <details><summary>Who sees my business?</summary><p>Only the buyers you approve. Buyers see an anonymous teaser first. The full memo is released to a buyer only after their NDA is marked signed.</p></details>
+        <details><summary>Do you give legal, tax or investment advice?</summary><p>No. Closewell is software. Work with qualified legal, tax and financial advisors on your sale.</p></details>
+        <details><summary>Is the buyer list real?</summary><p>On this page the buyers are fictional samples that show how matching works. In the product, buyer research is built around your industry, size and region.</p></details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Closewell. Concept product page.</span>
+    <span>Valuations are planning estimates, not appraisals.</span>
+  </div>
+</footer>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+const INDUSTRIES = {
+  industrials:{label:'Industrials & manufacturing', lo:4.5, hi:7.0},
+  distribution:{label:'Distribution', lo:4.0, hi:6.5},
+  services:{label:'Business services', lo:4.5, hi:7.5},
+  healthcare:{label:'Healthcare services', lo:5.5, hi:9.0},
+  technology:{label:'Software & technology', lo:6.0, hi:11.0},
+  consumer:{label:'Consumer products', lo:4.0, hi:7.0},
+  trades:{label:'Construction & trades', lo:3.5, hi:5.5},
+};
+const REGIONS = {ne:'Northeast', se:'Southeast', mw:'Midwest', sw:'Southwest', w:'West'};
+const TYPES = {strat:'Strategic', plat:'PE platform', addon:'PE add-on', fo:'Family office', search:'Search fund', indep:'Independent sponsor'};
+// Fictional sample buyers: [name, type, sectors, ebitdaMin $M, ebitdaMax $M, regions, deals in 5 yrs, focus]
+const RAW = [
+ ['Harrow Lane Industrial','strat',['industrials','distribution'],2,25,['all'],9,'Fluid handling and MRO distribution'],
+ ['Bellwether Fourth Capital','plat',['industrials','services'],3,15,['mw','ne'],14,'Founder-owned manufacturers'],
+ ['Copperline Holdings','fo',['distribution','consumer','industrials'],1,10,['all'],5,'Long-hold family capital'],
+ ['Sable Ridge Partners','addon',['distribution'],1,6,['mw','se','sw'],11,'Bolt-ons for a specialty distribution platform'],
+ ['Eastwick & Tolland','strat',['services'],1,20,['ne','se'],7,'Facility and field services'],
+ ['Granite Arch Equity','plat',['healthcare','services'],4,20,['all'],12,'Outpatient and clinical services'],
+ ['Pinecrest Search Partners','search',['services','trades','distribution'],0.8,3,['all'],2,'Single-acquisition search fund'],
+ ['Lowmoor Capital','indep',['industrials','trades'],1.5,6,['mw','sw'],3,'Deal-by-deal industrial buyouts'],
+ ['Northfold Software Group','strat',['technology'],1,30,['all'],18,'Vertical SaaS roll-up'],
+ ['Kestrel Point Partners','plat',['technology','services'],3,12,['w','ne'],9,'B2B software and tech-enabled services'],
+ ['Ambergate Brands','strat',['consumer'],2,20,['all'],6,'Branded food and household goods'],
+ ['Tidewater Family Office','fo',['healthcare','consumer','services'],1,8,['se'],4,'Southeast operators with recurring revenue'],
+ ['Corbel Mechanical','strat',['trades','industrials'],0.5,8,['sw','w','mw'],10,'HVAC, plumbing and electrical contractors'],
+ ['Fenwright Capital','addon',['industrials'],1,5,['all'],13,'Precision machining add-ons'],
+ ['Ostrander Growth','plat',['consumer','distribution'],3,15,['ne','mw'],6,'Consumer and specialty distribution'],
+ ['Wexley Medical Partners','addon',['healthcare'],0.8,6,['all'],15,'Dental, vet and physical therapy practices'],
+ ['Driftwood Search Capital','search',['technology','services'],0.6,2.5,['w','sw'],1,'Search fund, software and services'],
+ ['Halcyon Street Partners','indep',['distribution','services'],2,8,['se','ne'],4,'Independent sponsor, distribution'],
+ ['Marrow & Finch Industries','strat',['industrials'],5,40,['all'],8,'Engineered components'],
+ ['Quarry Hill Equity','plat',['trades','services'],2,10,['se','sw'],7,'Residential and commercial services'],
+ ['Larchmont Legacy Fund','fo',['industrials','trades','distribution'],1,12,['mw'],3,'Midwest family holding company'],
+ ['Silverbank Health','strat',['healthcare'],3,50,['all'],11,'Regional healthcare services'],
+ ['Brightwater Add-On Partners','addon',['services','technology'],0.7,4,['ne','mw','w'],16,'Tech-enabled services bolt-ons'],
+ ['Westerly Point Capital','plat',['distribution','industrials'],5,25,['w','sw'],5,'Industrial distribution platforms'],
+];
+const BUYERS = RAW.map((r,i)=>({id:'b'+i, name:r[0], type:r[1], sectors:r[2], min:r[3], max:r[4], regions:r[5], deals:r[6], focus:r[7]}));
+const byId = Object.fromEntries(BUYERS.map(b=>[b.id,b]));
+
+const STAGES = [
+ {k:'short', label:'Shortlisted', next:'Send the anonymous teaser'},
+ {k:'teaser', label:'Teaser sent', next:'Get the NDA signed'},
+ {k:'nda', label:'NDA signed', next:'Release the CIM'},
+ {k:'cim', label:'CIM shared', next:'Request an IOI'},
+ {k:'ioi', label:'IOI received', next:'Invite to submit an LOI'},
+ {k:'loi', label:'LOI', next:'Negotiate terms and exclusivity'},
+];
+const DEFAULT_INPUTS = {name:'Ridgeway Supply Co.', ind:'distribution', reg:'mw', rev:24000000, ebitda:3100000, owner:350000, onetime:120000, growth:12, recur:35, conc:18, dep:'med'};
+const DEFAULT_DEALS = [
+ {b:'b0', s:'ioi', bid:17500000},
+ {b:'b3', s:'nda', bid:null},
+ {b:'b20', s:'teaser', bid:null},
+];
+
+const KEY='closewell-v1';
+let S = load() || {inputs:{...DEFAULT_INPUTS}, deals:DEFAULT_DEALS.map(d=>({...d})), types:[], minFit:40, q:''};
+function load(){ try{ const v=JSON.parse(localStorage.getItem(KEY)); return v && v.inputs ? v : null }catch(e){ return null } }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)) }catch(e){} }
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function money(v){
+  const a=Math.abs(v), sgn=v<0?'-':'';
+  if(a>=1e9) return sgn+'$'+(a/1e9).toFixed(2)+'B';
+  if(a>=1e6) return sgn+'$'+(a/1e6).toFixed(a>=1e8?0:1)+'M';
+  if(a>=1e3) return sgn+'$'+Math.round(a/1e3)+'K';
+  return sgn+'$'+Math.round(a);
+}
+function moneyFull(v){ return '$'+Math.round(v).toLocaleString('en-US') }
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast.h); toast.h=setTimeout(()=>t.classList.remove('show'),1800) }
+
+/* ---------- valuation model ---------- */
+function value(inp){
+  const ind = INDUSTRIES[inp.ind] || INDUSTRIES.services;
+  const adj = Math.max(0, (+inp.ebitda||0) + (+inp.owner||0) + (+inp.onetime||0));
+  const base = (ind.lo+ind.hi)/2;
+  const m = adj/1e6;
+  const f = [];
+  f.push({k:'Size', d: m<1? -1.0 : m<3? -0.3 : m<5? 0 : m<10? 0.8 : 1.5, note: m<1?'Under $1M EBITDA':m<3?'$1M–$3M EBITDA':m<5?'$3M–$5M EBITDA':m<10?'$5M–$10M EBITDA':'Over $10M EBITDA'});
+  const g=+inp.growth; f.push({k:'Growth', d: g<0? -1.0 : g<5? -0.3 : g<10? 0 : g<20? 0.5 : 1.0, note: g+'% a year'});
+  const r=+inp.recur; f.push({k:'Recurring revenue', d: r>=60? 0.8 : r>=30? 0.3 : 0, note: r+'% contracted'});
+  const c=+inp.conc; f.push({k:'Customer concentration', d: c>25? -0.8 : c>15? -0.3 : 0, note: 'Top customer '+c+'%'});
+  f.push({k:'Owner dependence', d: inp.dep==='high'? -0.7 : inp.dep==='med'? -0.3 : 0, note: {low:'Team runs it',med:'Some reliance',high:'Heavy reliance'}[inp.dep]});
+  const ebitdaMargin = inp.rev>0 ? adj/inp.rev : 0;
+  f.push({k:'Margin', d: ebitdaMargin>=0.2? 0.4 : ebitdaMargin<0.07 && inp.rev>0? -0.4 : 0, note: inp.rev>0 ? (ebitdaMargin*100).toFixed(1)+'% adj. margin' : 'No revenue entered'});
+  const mid = Math.max(2, base + f.reduce((s,x)=>s+x.d,0));
+  const spread = (ind.hi-ind.lo)/2*0.6;
+  const lo = Math.max(1.5, mid-spread), hi = mid+spread;
+  return {ind, adj, base, f, mid, lo, hi, vLo:lo*adj, vMid:mid*adj, vHi:hi*adj, bandLo:ind.lo*adj, bandHi:ind.hi*adj, margin:ebitdaMargin};
+}
+function questions(inp, v){
+  const q=[];
+  if(+inp.conc>15) q.push('Your largest customer is '+inp.conc+'% of revenue. How long is that contract, and what happens if they leave?');
+  if(inp.dep!=='low') q.push('Who runs sales and key relationships if you step back after closing? Expect an earn-out or transition period request.');
+  if(+inp.growth<5) q.push('Revenue grew '+inp.growth+'% a year. What will drive growth under a new owner?');
+  if(+inp.recur<30) q.push('Only '+inp.recur+'% of revenue is contracted. How predictable is next year\'s revenue?');
+  if((+inp.owner + +inp.onetime) > 0.15*(+inp.ebitda||1)) q.push('Add-backs total '+money(+inp.owner + +inp.onetime)+'. Can you support each one with documents?');
+  if(v.margin>0 && v.margin<0.07) q.push('Adjusted margin is '+(v.margin*100).toFixed(1)+'%. Is that structural or fixable?');
+  if(!q.length) q.push({ok:true, t:'No major red flags in these inputs. Buyers will still verify every number in diligence.'});
+  return q;
+}
+
+/* ---------- buyer fit ---------- */
+function fit(b, inp, v){
+  const m=v.adj/1e6; const why=[]; let s=0;
+  if(b.sectors[0]===inp.ind){ s+=40; why.push('core sector') }
+  else if(b.sectors.includes(inp.ind)){ s+=32; why.push('sector match') }
+  if(m>=b.min && m<=b.max){ s+=30; why.push('size in range') }
+  else if(m>=b.min*0.7 && m<=b.max*1.3){ s+=14; why.push('size near range') }
+  if(b.regions.includes('all') || b.regions.includes(inp.reg)){ s+=15; why.push(b.regions.includes('all')?'national':'same region') }
+  s+=Math.min(15, b.deals); if(b.deals>=10) why.push('active acquirer');
+  return {score:Math.min(99,s), why};
+}
+
+/* ---------- render: form ---------- */
+function fillSelects(){
+  $('f-ind').innerHTML = Object.entries(INDUSTRIES).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
+  $('f-reg').innerHTML = Object.entries(REGIONS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
+  $('b-types').innerHTML = Object.entries(TYPES).map(([k,v])=>`<button type="button" class="chip" data-t="${k}" aria-pressed="false">${v}</button>`).join('');
+}
+const map = {name:'f-name', ind:'f-ind', reg:'f-reg', rev:'f-rev', ebitda:'f-ebitda', owner:'f-owner', onetime:'f-onetime', growth:'f-growth', recur:'f-recur', conc:'f-conc'};
+function writeForm(){
+  for(const [k,id] of Object.entries(map)) $(id).value = S.inputs[k];
+  document.querySelectorAll('#f-dep button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===S.inputs.dep));
+  $('b-min').value=S.minFit; $('b-q').value=S.q;
+  document.querySelectorAll('#b-types .chip').forEach(c=>c.setAttribute('aria-pressed', S.types.includes(c.dataset.t)));
+}
+function readForm(){
+  for(const [k,id] of Object.entries(map)){
+    const el=$(id); S.inputs[k] = (el.type==='number'||el.type==='range') ? (el.value===''?0:+el.value) : el.value;
+  }
+}
+
+/* ---------- render: valuation ---------- */
+function renderValuation(v){
+  const i=S.inputs;
+  $('o-growth').textContent=i.growth+'%'; $('o-recur').textContent=i.recur+'%'; $('o-conc').textContent=i.conc+'%';
+  $('v-low').textContent=money(v.vLo); $('v-mid').textContent=money(v.vMid); $('v-high').textContent=money(v.vHi);
+  $('v-mult').textContent=`Industry midpoint ${v.base.toFixed(1)}x → yours ${v.mid.toFixed(1)}x`;
+  $('v-band-label').textContent=`${v.ind.label} band ${v.ind.lo}x–${v.ind.hi}x`;
+  // bridge
+  const max=1.5;
+  $('v-bridge').innerHTML = `<div class="bridge-row"><span class="lbl">Industry midpoint<small>${v.ind.label}</small></span><span class="fineprint">Starting multiple</span><span class="delta num zero">${v.base.toFixed(1)}x</span></div>` +
+    v.f.map(x=>{
+      const w=Math.min(1,Math.abs(x.d)/max)*50; const cls=x.d>0?'pos':x.d<0?'neg':'zero';
+      const bar = x.d===0 ? '' : `<span class="bar ${cls}" style="${x.d>0?`left:50%;width:${w}%`:`left:${50-w}%;width:${w}%`}"></span>`;
+      return `<div class="bridge-row"><span class="lbl">${x.k}<small>${esc(x.note)}</small></span><span class="track">${bar}</span><span class="delta num ${cls}">${x.d>0?'+':x.d<0?'−':'±'}${Math.abs(x.d).toFixed(1)}x</span></div>`;
+    }).join('') +
+    `<div class="bridge-row" style="border-top:1px solid var(--line);padding-top:8px"><span class="lbl"><b>Your planning multiple</b><small>× ${money(v.adj)} adjusted EBITDA</small></span><span></span><span class="delta num" style="color:var(--accent);font-weight:600">${v.mid.toFixed(1)}x</span></div>`;
+  // questions
+  $('v-qs').innerHTML = questions(i,v).map(q=> typeof q==='string' ? `<li>${esc(q)}</li>` : `<li class="ok">${esc(q.t)}</li>`).join('');
+  drawChart(v);
+}
+function niceStep(max){ const raw=max/5; const p=Math.pow(10,Math.floor(Math.log10(raw||1))); const n=raw/p; return (n<1.5?1:n<3.5?2:n<7.5?5:10)*p }
+function drawChart(v){
+  const svg=$('v-chart'); const W=Math.max(320, svg.clientWidth||600), H=118, L=12, R=12;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const top = Math.max(v.bandHi, v.vHi)*1.12 || 1;
+  const step=niceStep(top); const maxX=Math.ceil(top/step)*step;
+  const x = val => L + (val/maxX)*(W-L-R);
+  let g='';
+  for(let t=0;t<=maxX+1e-6;t+=step){ const xx=x(t); g+=`<line x1="${xx}" x2="${xx}" y1="20" y2="86" stroke="var(--line)" stroke-width="1"/><text x="${xx}" y="104" font-size="11" fill="var(--muted)" text-anchor="${t===0?'start':t>=maxX-1e-6?'end':'middle'}">${t===0?'$0':money(t)}</text>`; }
+  const bx=x(v.bandLo), rx=x(v.vLo);
+  g+=`<text x="${bx}" y="14" font-size="11" fill="var(--muted)">Industry band ${v.ind.lo}x–${v.ind.hi}x</text>`;
+  g+=`<rect x="${bx}" y="20" width="${Math.max(1,x(v.bandHi)-bx)}" height="12" rx="3" fill="var(--sunk)" stroke="var(--muted)" stroke-opacity=".5"/>`;
+  g+=`<text x="${rx}" y="50" font-size="11" fill="var(--ink)">Your range ${v.lo.toFixed(1)}x–${v.hi.toFixed(1)}x</text>`;
+  g+=`<rect x="${rx}" y="56" width="${Math.max(1,x(v.vHi)-rx)}" height="16" rx="4" fill="var(--accent)" opacity=".85"/>`;
+  g+=`<line x1="${x(v.vMid)}" x2="${x(v.vMid)}" y1="53" y2="75" stroke="var(--signal)" stroke-width="3"/>`;
+  svg.innerHTML=g;
+}
+
+/* ---------- render: hero record ---------- */
+function renderRecord(v, scored){
+  $('rec-name').textContent = S.inputs.name || 'Your company';
+  $('rec-range').textContent = `${money(v.vLo)} – ${money(v.vHi)}`;
+  $('rec-basis').textContent = `${v.lo.toFixed(1)}x – ${v.hi.toFixed(1)}x adjusted EBITDA of ${money(v.adj)}`;
+  const furthest = S.deals.reduce((m,d)=>Math.max(m, STAGES.findIndex(s=>s.k===d.s)),-1);
+  const phaseIdx = S.deals.length ? Math.min(5, 3 + Math.floor(furthest/2)) : 1; // prep+value+package done once buyers exist
+  $('rec-phases').innerHTML = Array.from({length:6},(_,i)=>`<span class="${i<=phaseIdx?'on':''}"></span>`).join('');
+  $('rec-buyers').innerHTML = scored.slice(0,3).map(({b,f})=>`<div class="mini-buyer"><span class="avatar">${initials(b.name)}</span><span><div class="name">${esc(b.name)}</div><div class="sub">${TYPES[b.type]} · ${esc(f.why.slice(0,2).join(', '))}</div></span><span class="fit">${f.score}%</span></div>`).join('');
+  const short = S.deals.filter(d=>d.s==='short').length;
+  const top = S.deals.slice().sort((a,b)=>STAGES.findIndex(s=>s.k===b.s)-STAGES.findIndex(s=>s.k===a.s))[0];
+  $('rec-next').innerHTML = top ? `<b>Next</b><span>${short? `Send teaser to ${short} shortlisted buyer${short>1?'s':''}` : `${STAGES.find(s=>s.k===top.s).next}: ${esc(byId[top.b].name)}`}</span>` : `<b>Next</b><span>Shortlist buyers from the match list</span>`;
+}
+function initials(n){ return n.split(/\s+/).filter(w=>/^[A-Z]/.test(w)).slice(0,2).map(w=>w[0]).join('') }
+
+/* ---------- render: buyers ---------- */
+function scoreAll(v){ return BUYERS.map(b=>({b, f:fit(b,S.inputs,v)})).sort((a,b)=>b.f.score-a.f.score) }
+function renderBuyers(scored){
+  $('o-min').textContent=S.minFit+'%';
+  const q=S.q.trim().toLowerCase();
+  const rows = scored.filter(({b,f})=> f.score>=S.minFit && (!S.types.length || S.types.includes(b.type)) && (!q || (b.name+' '+b.focus).toLowerCase().includes(q)));
+  const inRoom = new Set(S.deals.map(d=>d.b));
+  $('b-summary').textContent = `${rows.length} of ${BUYERS.length} buyers match · ${money(scoreAll.v.adj)} adj. EBITDA, ${INDUSTRIES[S.inputs.ind].label}, ${REGIONS[S.inputs.reg]}`;
+  $('b-rows').innerHTML = rows.length ? rows.map(({b,f})=>{
+    const cls = f.score>=70?'':f.score>=50?'mid':'low';
+    const added = inRoom.has(b.id);
+    return `<tr><td><div class="name">${esc(b.name)}</div><div class="sub">${esc(b.focus)}</div></td>
+      <td><span class="type-pill">${TYPES[b.type]}</span></td>
+      <td class="num">$${b.min}M–$${b.max}M</td>
+      <td class="num">${b.deals}</td>
+      <td><div class="fitbar ${cls}"><span class="num">${f.score}%</span><i><b style="width:${f.score}%"></b></i></div><div class="why">${esc(f.why.join(' · '))}</div></td>
+      <td style="text-align:right"><button class="btn ${added?'btn-ghost':'btn-primary'} btn-sm" data-add="${b.id}" ${added?'disabled aria-disabled="true"':''}>${added?'In deal room':'Shortlist'}</button></td></tr>`;
+  }).join('') : `<tr><td colspan="6" class="empty">No buyers match these filters. Lower the minimum fit or clear a buyer type.</td></tr>`;
+}
+
+/* ---------- render: deal room ---------- */
+function renderRoom(v){
+  const col = STAGES.map((st,si)=>{
+    const ds = S.deals.filter(d=>d.s===st.k);
+    return `<div class="col"><div class="col-head"><b>${st.label}<small>${st.next}</small></b><span class="count">${ds.length}</span></div>${
+      ds.length ? ds.map(d=>{ const b=byId[d.b]; const f=fit(b,S.inputs,v);
+        const bidField = si>=4 ? `<label class="bid" for="bid-${d.b}"><span>Bid</span><span class="money"><input type="number" id="bid-${d.b}" data-bid="${d.b}" step="100000" value="${d.bid??''}" placeholder="EV"></span></label>` : '';
+        return `<div class="deal"><div><div class="name">${esc(b.name)}</div><div class="sub">${TYPES[b.type]} · fit ${f.score}%</div></div>${bidField}<div class="act">→ ${st.next}</div>
+          <div class="deal-btns"><button data-mv="${d.b}" data-dir="-1" ${si===0?'disabled':''} aria-label="Move ${esc(b.name)} back">←</button><button class="fwd" data-mv="${d.b}" data-dir="1" ${si===STAGES.length-1?'disabled':''}>${si===STAGES.length-1?'At LOI':'Advance'}</button><button class="rm" data-rm="${d.b}" aria-label="Remove ${esc(b.name)}">×</button></div></div>`;
+      }).join('') : `<div class="col-empty">${si===0?'Shortlist buyers from the match tab.':'None yet'}</div>`
+    }</div>`;
+  }).join('');
+  $('board').innerHTML = col;
+  const idx = d=>STAGES.findIndex(s=>s.k===d.s);
+  const bids = S.deals.filter(d=>idx(d)>=4 && d.bid>0).map(d=>d.bid);
+  $('r-active').textContent=S.deals.length;
+  $('r-nda').textContent=S.deals.filter(d=>idx(d)>=2).length;
+  $('r-bids').textContent=bids.length;
+  $('r-best').textContent= bids.length ? money(Math.max(...bids)) + (Math.max(...bids)>=v.vMid?' ▲':'') : '–';
+  $('room-count').textContent=S.deals.length;
+}
+
+/* ---------- render: pricing ---------- */
+function renderPricing(v){
+  const fee=v.vMid*0.05;
+  $('p-mid').textContent=money(v.vMid); $('p-fee').textContent=moneyFull(fee);
+  $('p-save').textContent = fee>2988 ? `${money(fee-2988)} kept` : 'Similar cost at this size';
+}
+
+function render(){
+  const v=value(S.inputs); scoreAll.v=v;
+  const scored=scoreAll(v);
+  renderValuation(v); renderRecord(v, scored); renderBuyers(scored); renderRoom(v); renderPricing(v);
+  save();
+}
+
+/* ---------- events ---------- */
+fillSelects(); writeForm();
+$('vform').addEventListener('input', ()=>{ readForm(); render() });
+$('vform').addEventListener('submit', e=>e.preventDefault());
+$('f-dep').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return; S.inputs.dep=b.dataset.v; writeForm(); render() });
+$('reset').addEventListener('click', ()=>{ S.inputs={...DEFAULT_INPUTS}; writeForm(); render(); toast('Example inputs restored') });
+$('b-q').addEventListener('input', e=>{ S.q=e.target.value; render() });
+$('b-min').addEventListener('input', e=>{ S.minFit=+e.target.value; render() });
+$('b-types').addEventListener('click', e=>{ const c=e.target.closest('.chip'); if(!c) return; const t=c.dataset.t; S.types = S.types.includes(t)? S.types.filter(x=>x!==t) : [...S.types,t]; c.setAttribute('aria-pressed', S.types.includes(t)); render() });
+$('b-rows').addEventListener('click', e=>{ const b=e.target.closest('[data-add]'); if(!b) return; S.deals.push({b:b.dataset.add, s:'short', bid:null}); render(); toast(byId[b.dataset.add].name+' added to the deal room') });
+$('board').addEventListener('click', e=>{
+  const mv=e.target.closest('[data-mv]'), rm=e.target.closest('[data-rm]');
+  if(mv){ const d=S.deals.find(x=>x.b===mv.dataset.mv); const i=STAGES.findIndex(s=>s.k===d.s)+ +mv.dataset.dir; if(i<0||i>=STAGES.length) return; d.s=STAGES[i].k; render(); toast(`${byId[d.b].name} moved to ${STAGES[i].label}`) }
+  if(rm){ S.deals=S.deals.filter(x=>x.b!==rm.dataset.rm); render(); toast('Removed from the deal room') }
+});
+$('board').addEventListener('change', e=>{ const i=e.target.closest('[data-bid]'); if(!i) return; const d=S.deals.find(x=>x.b===i.dataset.bid); d.bid = i.value===''?null:+i.value; render() });
+$('r-add').addEventListener('click', ()=>selectTab('tab-buyers'));
+
+// tabs
+const tabs=[...document.querySelectorAll('.tab')];
+function selectTab(id){ tabs.forEach(t=>{ const on=t.id===id; t.setAttribute('aria-selected',on); t.tabIndex=on?0:-1; $(t.getAttribute('aria-controls')).hidden=!on }); try{ localStorage.setItem(KEY+'-tab',id) }catch(e){} }
+tabs.forEach(t=>t.addEventListener('click',()=>selectTab(t.id)));
+document.querySelector('.tabs').addEventListener('keydown', e=>{ if(!['ArrowLeft','ArrowRight'].includes(e.key)) return; const i=tabs.findIndex(t=>t.getAttribute('aria-selected')==='true'); const n=tabs[(i+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length]; selectTab(n.id); n.focus() });
+try{ const t=localStorage.getItem(KEY+'-tab'); if(t && $(t)) selectTab(t) }catch(e){}
+
+let rz; window.addEventListener('resize', ()=>{ clearTimeout(rz); rz=setTimeout(()=>drawChart(scoreAll.v),120) });
+render();
+})();
+</script>
+
+</body>
+</html>
